@@ -1,0 +1,34 @@
+# .gitignore
+
+# Python 가상 환경
+# readme.md에서 'ldra_static' 사용 확인
+ldra_static/
+venv/
+*.venv/
+env/
+
+# Python 캐시 파일
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# PyInstaller 빌드 아티팩트
+# readme.md에서 PyInstaller 사용 확인
+dist/
+build/
+*.spec
+
+# IDE 및 에디터 설정 파일
+.idea/
+.vscode/
+
+# Python 코드에서 생성되는 백업 파일
+# 'code_append.py'의 add_misra_comments_to_cpp 함수에서 생성 확인
+*_bak.cpp
+*_bak.hpp
+*_bak.h
+
+# Excel 추출 파일 (프로그램 실행 결과물이므로)
+# 'code_append.py'의 extract_detection_lines 함수에서 생성 확인
+*_extract.xlsx
