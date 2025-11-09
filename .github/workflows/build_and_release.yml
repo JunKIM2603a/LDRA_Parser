@@ -3,55 +3,46 @@
 name: Build and Release LDRA Parser
 
 on:
-  # 'main' 브랜치로 푸시될 때마다 실행
-  push:
-    branches: [ "main" ]
-  
-  # 'main' 브랜치로 Pull Request가 열릴 때마다 실행
-  pull_request:
-    branches: [ "main" ]
-
-  # GitHub의 "Releases" 탭에서 새 릴리스를 생성할 때 실행
+  # 1. GitHub의 "Releases" 탭에서 새 릴리스를 생성할 때만 실행
   release:
     types: [created]
 
-  # 수동으로 워크플로우를 실행할 수 있도록 함
+  # 2. "Actions" 탭에서 수동으로 워크플로우를 실행할 수 있도록 함 (빌드 테스트용)
   workflow_dispatch:
 
 jobs:
   build-exe:
-    # 빌드 환경을 Windows 최신 버전으로 설정 (exe 빌드를 위해)
+    # 빌드 환경을 Windows 최신 버전으로 설정
     runs-on: windows-latest
 
     steps:
-      # 1. 저장소의 코드를 체크아웃
+      # 저장소의 코드를 체크아웃
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Python 3.11 환경 설정
+      # Python 3.11 환경 설정
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      # 3. requirements.txt 파일로 의존성 설치
+      # 의존성 설치
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      # 4. PyInstaller를 사용하여 .exe 파일 빌드
-      #    readme.md의 빌드 명령어를 사용합니다.
+      # PyInstaller를 사용하여 .exe 파일 빌드
       - name: Build executable with PyInstaller
         run: pyinstaller --onefile --noconsole --hidden-import=openpyxl code_append.py
 
-      # 5. 빌드된 .exe 파일의 이름을 알기 쉽게 변경
+      # 빌드된 .exe 파일 이름 변경
       - name: Rename executable
         run: Rename-Item -Path dist/code_append.exe -NewName LDRA_Parser.exe
 
-      # 6. 빌드된 .exe 파일을 GitHub Actions 아티팩트로 업로드
-      #    (워크플로우 실행 결과에서 다운로드 가능)
-      - name: Upload executable artifact
+      # 빌드된 .exe 파일을 GitHub Actions 아티팩트로 업로드
+      # (이래야 다음 작업에서 다운로드하여 릴리스에 첨부할 수 있음)
+      - name: Upload executable artifact for release job
         uses: actions/upload-artifact@v4
         with:
           name: ldra-parser-exe
@@ -59,11 +50,11 @@ jobs:
 
   # 'build-exe' 작업이 성공하고, 이벤트가 'release'일 때만 실행
   upload-to-release:
-    # GitHub 릴리스 이벤트일 때만 실행
+    # 'release' 이벤트로 워크플로우가 시작됐을 때만 이 작업을 실행
     if: github.event_name == 'release'
     # 'build-exe' 작업이 완료된 후에 실행
     needs: build-exe
-    runs-on: ubuntu-latest # 릴리스 업로드는 모든 OS에서 가능
+    runs-on: ubuntu-latest
 
     steps:
       # 1. 'build-exe' 작업에서 업로드한 아티팩트(exe 파일) 다운로드
